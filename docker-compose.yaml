@@ -1,0 +1,64 @@
+services:
+  api:
+    container_name: evolution_api
+    image: atendai/evolution-api:latest
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - 8080:8080
+    volumes:
+      - evolution_instances:/evolution/instances
+    env_file:
+      - .env
+    expose:
+      - 8080
+    networks:
+      - local-ai-packaged_demo
+      - evolution-net
+
+  redis:
+    image: redis:latest
+    networks:
+      - evolution-net
+    container_name: redis
+    command: >
+      redis-server --port 6379 --appendonly yes
+    volumes:
+      - evolution_redis:/data
+    ports:
+      - 6379:6379
+
+  postgres:
+    container_name: postgres
+    image: postgres:16-alpine
+    networks:
+      - evolution-net
+    command: ["postgres", "-c", "max_connections=1000", "-c", "listen_addresses=*"]
+    restart: always
+    ports:
+      - 5433:5433
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=evolution
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - PGPORT=5433
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - 5433
+
+volumes:
+  evolution_instances:
+  evolution_redis:
+  postgres_data:
+
+networks:
+  local-ai-packaged_demo:
+    name: local-ai-packaged_demo
+    external: true
+  evolution-net:
+    name: evolution-net
+    driver: bridge
