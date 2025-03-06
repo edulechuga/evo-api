@@ -17,6 +17,8 @@ services:
     networks:
       - local-ai_demo
       - evolution-net
+    environment:
+      - DATABASE_URL=postgresql://user:pass@postgres:5434/evolution
 
   redis:
     image: redis:latest
